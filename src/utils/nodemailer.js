@@ -1,13 +1,8 @@
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
-const createTransporter = () =>
-  nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.MAIL_USER,
-      pass: process.env.MAIL_PASS,
-    },
-  });
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+const FROM_ADDRESS = process.env.MAIL_FROM || "OHS Academy <onboarding@resend.dev>";
 
 /**
  * @param {string} to
@@ -18,10 +13,8 @@ const sendMail = async (to, otp, userId) => {
   const baseUrl = process.env.BASE_URL || "http://localhost:3000";
   const verifyLink = `${baseUrl}/verify/${userId}/${otp}`;
 
-  const transporter = createTransporter();
-
-  const mailOptions = {
-    from: `"OHS Academy" <${process.env.MAIL_USER}>`,
+  const { error } = await resend.emails.send({
+    from: FROM_ADDRESS,
     to,
     subject: "توثيق البريد الالكتروني - Operative High Class",
     text: `مرحباً،\n\nاضغط على الرابط التالي لتوثيق حسابك (صالح لمدة 10 دقائق):\n${verifyLink}\n\nإذا لم تطلب هذا، تجاهل الرسالة.`,
@@ -37,13 +30,11 @@ const sendMail = async (to, otp, userId) => {
                     <p style="color: #6b7280; font-size: 13px;">إذا لم تطلب إنشاء حساب، تجاهل هذه الرسالة.</p>
                </div>
           `,
-  };
+  });
 
-  try {
-    await transporter.sendMail(mailOptions);
-  } catch (err) {
-    console.error("sendMail error:", err);
-    throw err;
+  if (error) {
+    console.error("sendMail error:", error);
+    throw new Error(error.message || "Failed to send verification email");
   }
 };
 
@@ -56,10 +47,8 @@ const sendResetMail = async (to, otp) => {
   const baseUrl = process.env.BASE_URL || "http://localhost:3000";
   const resetLink = `${baseUrl}/reset-password/${to}/${otp}`;
 
-  const transporter = createTransporter();
-
-  const mailOptions = {
-    from: `"OHS Academy" <${process.env.MAIL_USER}>`,
+  const { error } = await resend.emails.send({
+    from: FROM_ADDRESS,
     to,
     subject: "إعادة تعيين كلمة المرور - Operative High Class",
     text: `مرحباً،\n\nاضغط على الرابط التالي لإعادة تعيين كلمة المرور (صالح لمدة 10 دقائق):\n${resetLink}\n\nإذا لم تطلب هذا، تجاهل الرسالة.`,
@@ -75,13 +64,11 @@ const sendResetMail = async (to, otp) => {
                     <p style="color: #6b7280; font-size: 13px;">إذا لم تطلب إعادة التعيين، تجاهل هذه الرسالة وكلمة مرورك ستبقى كما هي.</p>
                </div>
           `,
-  };
+  });
 
-  try {
-    await transporter.sendMail(mailOptions);
-  } catch (err) {
-    console.error("sendResetMail error:", err);
-    throw err;
+  if (error) {
+    console.error("sendResetMail error:", error);
+    throw new Error(error.message || "Failed to send reset email");
   }
 };
 
