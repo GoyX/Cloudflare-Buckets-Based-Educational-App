@@ -24,6 +24,7 @@ app.use(cookieParser());
 
 app.use(express.static(path.join(__dirname, "public")));
 
+app.use(require("./routes/smtp-test.route.js"));
 app.get("/healthz", (req, res) => {
   res.status(200).json({ success: "true" });
 });
