@@ -108,7 +108,10 @@ const signupPOST = async (req, res) => {
     await newOtp.save();
 
     const otpForLink = otpHashed.replace(/\//g, "slash");
-    await mailer.sendMail(email, otpForLink, saveUser._id);
+
+    mailer.sendMail(email, otpForLink, saveUser._id).catch((mailErr) => {
+      console.error("sendMail (background) error:", mailErr);
+    });
 
     return renderSignup(res, req, {
       note: "تم تسجيل الحساب، تحقق من بريدك الالكتروني للتوثيق (صالح 10 دقائق)",
@@ -338,7 +341,9 @@ const forgotPasswordPOST = async (req, res) => {
     const newOtp = new Otp({ otp: otpHashed, otpUser: user._id });
     await newOtp.save();
 
-    await mailer.sendResetMail(user.email, otpForLink);
+    mailer.sendResetMail(user.email, otpForLink).catch((mailErr) => {
+      console.error("sendResetMail (background) error:", mailErr);
+    });
 
     return renderForgot(res, req, {
       note: "إذا كان البريد مسجلاً وموثقاً، ستصلك رسالة لإعادة التعيين",
