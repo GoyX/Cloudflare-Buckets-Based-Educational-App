@@ -24,6 +24,10 @@ app.use(cookieParser());
 
 app.use(express.static(path.join(__dirname, "public")));
 
+app.get("/healthz", (req, res) => {
+  res.render("offline");
+});
+
 app.use(counter.count);
 
 app.use(routes);
