@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="black">
+
+<%- include("./partials/header.ejs", { pageTitle: 'إدارة المستخدم: ' + userM.userName }) %>
+
+<body class="min-h-screen bg-black pb-24 md:pb-10 md:pt-15">
+     <%- include("./partials/navbar.ejs") %>
+
+     <div class="max-w-3xl mx-auto px-4 pt-6">
+          <div class="card bg-blur border border-neutral-600 mb-6">
+               <div class="card-body gap-3">
+                    <div class="flex items-center gap-2">
+                         <span id="user-id" class="badge badge-soft badge-primary font-mono"><%= userM.userId %></span>
+                         <button onclick="copyToClipboard()" title="نسخ المعرّف" class="btn btn-text btn-circle btn-sm" aria-label="نسخ المعرّف">
+                              <i class="fi fi-sr-copy text-sm"></i>
+                         </button>
+                         <div id="copied-snackbar" class="text-xs text-success opacity-0 transition-opacity duration-300">تم النسخ</div>
+                    </div>
+                    <p class="text-white text-lg font-bold"><%= userM.userName %></p>
+                    <p class="text-white/60 text-sm"><%= userM.email %></p>
+                    <div class="flex gap-2">
+                         <span class="badge <%= userM.verified ? 'badge-success' : 'badge-neutral' %> badge-soft">
+                              <%= userM.verified ? 'موثّق' : 'غير موثّق' %>
+                         </span>
+                         <span class="badge <%= userM.admin ? 'badge-primary' : 'badge-neutral' %> badge-soft">
+                              <%= userM.admin ? 'مشرف' : 'مستخدم' %>
+                         </span>
+                    </div>
+               </div>
+          </div>
+
+          <p class="text-white font-medium mb-3">الدورات</p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+               <% courses.forEach(course => { %>
+                    <% const owns = ownedCourseIds.has(course._id.toString()); %>
+                    <div class="card bg-blur border border-neutral-600 overflow-hidden">
+                         <figure class="h-28 bg-cover bg-center" style="background-image:url('/uploads/<%= course.thumbnail %>');"></figure>
+                         <div class="card-body p-4 gap-2">
+                              <p class="text-white text-sm font-medium"><%= course.title %></p>
+                              <form method="POST" action="/admin/manage/<%= userM.userId %>">
+                                   <input type="hidden" name="courseId" value="<%= course._id %>">
+                                   <% if (owns) { %>
+                                        <input type="hidden" name="action" value="remove">
+                                        <button type="submit" class="btn btn-soft btn-error btn-sm w-full">
+                                             إزالة الدورة
+                                             <i class="fi fi-sr-minus text-xs"></i>
+                                        </button>
+                                   <% } else { %>
+                                        <input type="hidden" name="action" value="add">
+                                        <button type="submit" class="btn btn-soft btn-primary btn-sm w-full">
+                                             إضافة الدورة
+                                             <i class="fi fi-sr-plus text-xs"></i>
+                                        </button>
+                                   <% } %>
+                              </form>
+                         </div>
+                    </div>
+               <% }) %>
+          </div>
+     </div>
+
+     <script src="/js/userManage.js"></script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="black">
+
+<%- include("./partials/header.ejs", { pageTitle: 'الدورات' }) %>
+
+<body class="min-h-screen bg-black pb-24 md:pb-10 md:pt-15">
+     <%- include("./partials/loader.ejs") %>
+     <%- include("./partials/navbar.ejs") %>
+
+     <div class="max-w-5xl mx-auto px-4">
+          <header class="pt-8 flex flex-col items-center text-center">
+               <span class="text-primary text-sm">الدورات المقدمة من</span>
+               <h1 class="text-white text-2xl font-bold mt-1">Operative High Class</h1>
+               <div class="w-24 border-b radial-border mt-3"></div>
+          </header>
+
+          <section class="mt-8">
+               <% if (!courses || courses.length === 0) { %>
+                    <p class="text-center text-white/50 py-16">لا توجد دورات متاحة حالياً.</p>
+               <% } else { %>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                         <% courses.forEach(course => { %>
+                         <a href="/course/<%= course._id %>" class="card bg-blur border border-neutral-600 hover:border-primary/60 transition-colors overflow-hidden group">
+                              <figure class="relative h-40 bg-cover bg-center" style="background-image:url('/uploads/<%= course.thumbnail %>');">
+                                   <span class="absolute bottom-2 inset-s-2 badge badge-primary badge-soft"><%= course.price %>$</span>
+                              </figure>
+                              <div class="card-body p-4">
+                                   <p class="text-white font-medium leading-snug"><%= course.title %></p>
+                                   <div class="flex items-center justify-between mt-2">
+                                        <span class="text-sm text-white/50"><%= course.students %> طالب</span>
+                                        <span class="link link-primary no-underline text-sm flex items-center gap-1">
+                                             عرض الدورة
+                                             <i class="fi mt-1 fi-sr-arrow-left text-xs group-hover:-translate-x-1 transition-transform"></i>
+                                        </span>
+                                   </div>
+                              </div>
+                         </a>
+                         <% }) %>
+                    </div>
+               <% } %>
+          </section>
+     </div>
+</body>
+</html>

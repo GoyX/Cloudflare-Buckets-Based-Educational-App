@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="black">
+
+<%- include("./partials/header.ejs", { pageTitle: 'شراء: ' + course.title }) %>
+
+<body class="min-h-screen bg-black pb-24 md:pb-10 md:pt-15">
+     <%- include("./partials/navbar.ejs") %>
+
+     <div class="max-w-2xl mx-auto px-4 pt-6">
+          <div class="card bg-blur border border-neutral-600">
+               <div class="card-body gap-5">
+                    <div class="flex items-center gap-4">
+                         <img src="/uploads/<%= course.thumbnail %>" alt="غلاف <%= course.title %>" class="w-20 h-20 rounded-box object-cover border border-neutral-600">
+                         <div>
+                              <h2 class="text-lg font-bold text-white"><%= course.title %></h2>
+                              <p class="text-sm text-white/60 mt-1">السعر: <span class="text-primary font-semibold">$<%= course.price %></span></p>
+                         </div>
+                    </div>
+
+                    <div class="border-t border-neutral-600"></div>
+
+                    <div class="flex flex-col gap-4">
+                         <p class="text-white/70 text-sm">للشراء، تواصل معنا عبر إحدى القنوات التالية وأرسل معرّفك:</p>
+
+                         <% if (user) { %>
+                              <div class="alert alert-soft alert-primary text-sm">
+                                   معرّفك: <strong><%= user.data %></strong>
+                              </div>
+                         <% } %>
+
+                         <div class="grid grid-cols-2 gap-3">
+                              <a href="https://wa.me/YOUR_WHATSAPP_NUMBER?text=مرحباً، أريد شراء دورة <%= encodeURIComponent(course.title) %>"
+                                 target="_blank" rel="noopener noreferrer"
+                                 class="btn" style="background-color:#25D366; border-color:#25D366; color:#fff;">
+                                   واتساب
+                              </a>
+
+                              <a href="https://t.me/YOUR_TELEGRAM_USERNAME"
+                                 target="_blank" rel="noopener noreferrer"
+                                 class="btn" style="background-color:#229ED9; border-color:#229ED9; color:#fff;">
+                                   تيليغرام
+                              </a>
+                         </div>
+
+                         <p class="text-xs text-white/40 text-center">بعد التواصل وإتمام عملية الدفع، سيتم تفعيل الدورة في حسابك خلال 24 ساعة.</p>
+                    </div>
+               </div>
+          </div>
+     </div>
+</body>
+</html>

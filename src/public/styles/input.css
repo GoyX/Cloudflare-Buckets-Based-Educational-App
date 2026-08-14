@@ -1,0 +1,22 @@
+@import "tailwindcss";
+@config "../../../tailwind.config.js";
+
+@source "../views/**/*.ejs";
+@source "../js/**/*.js";
+@source "../../../node_modules/flyonui/dist/js/*.js";
+
+@plugin "flyonui" {
+  themes: black --default;
+}
+@import "flyonui/variants.css";
+@source "flyonui/dist/index.js";
+
+@plugin "flyonui/theme" {
+  name: "black";
+  --color-primary: #006ff8;
+  --color-primary-content: #ffffff;
+}
+
+@theme {
+  --important: true;
+}

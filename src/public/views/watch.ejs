@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="black">
+
+<%- include("./partials/header.ejs", { pageTitle: currentVideo ? currentVideo.title : course.title }) %>
+
+<body class="min-h-screen bg-black pb-24 md:pb-10 md:pt-15">
+     <%- include("./partials/navbar.ejs") %>
+
+     <div class="max-w-4xl mx-auto px-4 pt-4">
+          <div class="video-embed">
+               <% if (currentVideo) { %>
+                    <div>
+                         <video-player>
+                              <video-skin>
+                                   <hlsjs-video src="/stream/<%= currentVideo.videoId %>/master.m3u8" playsinline></hlsjs-video>
+                              </video-skin>
+                         </video-player>
+                    </div>
+                    <div class="py-4">
+                         <p class="text-white font-medium">
+                              <%= currentVideo.title %>
+                              <span class="text-white/30 mx-2">|</span>
+                              <span class="text-white/50 text-sm"><%= course.title %></span>
+                         </p>
+                    </div>
+               <% } else { %>
+                    <div class="text-center py-16 text-white/50">لا توجد فيديوهات في هذه الدورة بعد.</div>
+               <% } %>
+
+               <div class="course-chapters flex flex-col gap-2 mt-2">
+                    <% course.chapters.forEach((chapter, chapterIdx) => { %>
+                    <ul class="chapters-list card bg-blur border border-neutral-600 overflow-hidden p-0">
+                         <li>
+                              <div class="chapter-title cursor-pointer flex items-center justify-between px-4 py-3 hover:bg-white/5 transition-colors">
+                                   <span class="text-white text-sm font-medium">
+                                        <span class="text-primary">الفصل <%= chapterIdx + 1 %>:</span>
+                                        <%= chapter.chapTitle %>
+                                   </span>
+                                   <i class="fi fi-sr-angle-small-down text-white/40 text-xs"></i>
+                              </div>
+                              <ul class="sub-list collapsible-list divide-y divide-white/5 border-t border-neutral-600">
+                                   <% chapter.videos.forEach((video, videoIdx) => { %>
+                                        <li class="video-link-con flex items-center justify-between px-4 py-3 <%= currentVideo && currentVideo._id.toString() === video._id.toString() ? 'active-video bg-primary/10' : '' %>">
+                                             <a href="/watch/<%= course._id %>/<%= video._id %>" class="flex items-center gap-2 text-sm no-underline <%= currentVideo && currentVideo._id.toString() === video._id.toString() ? 'text-primary' : 'text-white/80' %>">
+                                                  <span class="text-white/30"><%= videoIdx + 1 %>.</span>
+                                                  <%= video.title %>
+                                             </a>
+                                             <i class="fi fi-sr-play-circle text-sm <%= currentVideo && currentVideo._id.toString() === video._id.toString() ? 'text-primary' : 'text-white/30' %>"></i>
+                                        </li>
+                                   <% }) %>
+                              </ul>
+                         </li>
+                    </ul>
+                    <% }) %>
+               </div>
+          </div>
+     </div>
+     <script type="module" src="https://cdn.jsdelivr.net/npm/@videojs/html/cdn/video.js"></script>
+     <script type="module" src="https://cdn.jsdelivr.net/npm/@videojs/html/cdn/media/hlsjs-video.js"></script>
+
+     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+     <script>
+          $(document).ready(function() {
+               $('.chapter-title').on('click', function() {
+                    $(this).siblings('.sub-list').slideToggle();
+                    $(this).find('.fi-sr-angle-small-down').toggleClass('rotate-180');
+               });
+
+               $('.active-video').closest('.sub-list').show();
+               $('.active-video').closest('.chapters-list').find('.chapter-title').addClass('open').find('.fi-sr-angle-small-down').addClass('rotate-180');
+          });
+     </script>
+
+</body>
+</html>

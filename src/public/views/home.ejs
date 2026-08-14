@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="black">
+
+<%- include("./partials/header.ejs", { pageTitle: 'الصفحة الرئيسية' }) %>
+<body class="min-h-screen bg-black pb-24 md:pb-10 md:pt-15">
+    <%- include("./partials/loader.ejs") %>
+    <%- include("./partials/navbar.ejs") %>
+
+    <div class="max-w-2xl mx-auto px-4">
+        <header class="pt-10 flex flex-col justify-center items-center text-center">
+            <h4 class="text-white text-xl font-bold mb-2">Operative High Class</h4>
+            <div class="w-full border-b max-w-72 radial-border mb-2"></div>
+            <p class="text-white/50 text-sm mt-2">دورات تعليمية احترافية بأسعار تبدأ من 12 دولاراً</p>
+        </header>
+
+        <% if (courses && courses.length > 0) { %>
+        <div class="w-full mt-8">
+            <p class="text-white/70 text-sm mb-3">آخر الدورات</p>
+            <a class="block w-full max-w-md mx-auto" href="/course/<%= courses[courses.length - 1]._id %>">
+                <div class="bg-blur border border-neutral-600 w-full rounded-box overflow-hidden h-48 relative bg-cover bg-center"
+                     style="background-image: url('/uploads/<%= courses[courses.length - 1].thumbnail %>');">
+                    <span class="absolute top-0 inset-s-0 py-2 px-3 text-xs bg-neutral-900">آخر الدورات</span>
+                    <p class="w-full bg-blur radial-border border-t absolute bottom-0 py-2 px-3 text-white text-sm"><%= courses[courses.length - 1].title %></p>
+                    <p class="absolute inset-e-0 bottom-0 py-2 px-3 text-primary font-medium">$<%= courses[courses.length - 1].price %></p>
+                </div>
+            </a>
+        </div>
+        <% } %>
+
+        <div class="w-full mt-8 mb-8 flex justify-center">
+            <a href="/courses" class="btn btn-soft btn-primary btn-sm">
+                تصفّح جميع الدورات
+                <i class="fi fi-sr-e-learning text-xs"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="w-full flex justify-center">
+
+    <%- include("./partials/install.ejs") %>
+    </div>
+
+    <%- include("./partials/scripts.ejs") %>
+    <br><br><br><br>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="black">
+
+<%- include("./partials/header.ejs", { pageTitle: 'خطأ' }) %>
+
+<body class="min-h-screen bg-black">
+     <%- include("./partials/navbar.ejs") %>
+
+     <div class="min-h-screen flex items-center justify-center px-4 pb-24 pt-10 md:pt-24 md:pb-10">
+          <div class="w-full max-w-md text-center">
+               <div class="card bg-blur border border-error/30 shadow-xl">
+                    <div class="card-body items-center gap-4">
+                         <i class="fi fi-sr-triangle-warning text-5xl text-error"></i>
+                         <p class="text-white/80"><%= error %></p>
+                         <a href="<%= back %>" class="btn btn-soft btn-primary">
+                              <i class="fi fi-sr-arrow-right text-sm"></i>
+                              العودة
+                         </a>
+                    </div>
+               </div>
+          </div>
+     </div>
+</body>
+</html>

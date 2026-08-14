@@ -1,0 +1,7 @@
+.nav-bar {
+  color: #fff;
+  bottom: 0;
+  position: fixed;
+  z-index: 99999;
+  font-size: 1.3rem;
+}

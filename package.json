@@ -1,0 +1,47 @@
+{
+  "name": "ohsacademy",
+  "version": "1.0.0",
+  "description": "Operative High Class Web App",
+  "main": "./src/app.js",
+  "scripts": {
+    "postinstall": "node scripts/copy-vendor-assets.js",
+    "start": "nodemon ./src/app.js",
+    "test": "echo \"no tests yet\" && exit 0",
+    "build:css": "postcss ./src/public/styles/input.css -o ./src/public/styles/build.css --watch",
+    "dev": "concurrently \"npm:build:css\" \"npm:start\"",
+    "encode": "node scripts/encode-video.js",
+    "encode:course": "node scripts/encode-course.js",
+    "r2:cors": "node scripts/set-r2-cors.js",
+    "r2:diagnose": "node scripts/r2-diagnose.js"
+  },
+  "author": "Mustafa Hashim",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1101.0",
+    "@aws-sdk/s3-request-presigner": "^3.1101.0",
+    "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^16.6.1",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-validator": "^7.3.2",
+    "flyonui": "^2.4.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^7.8.10",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.10.1"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "autoprefixer": "^10.5.4",
+    "concurrently": "^10.0.4",
+    "nodemon": "^3.1.14",
+    "postcss": "^8.5.25",
+    "postcss-cli": "^11.0.1",
+    "tailwindcss": "^4.3.3"
+  }
+}

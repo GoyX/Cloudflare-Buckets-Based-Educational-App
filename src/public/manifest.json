@@ -1,0 +1,23 @@
+{
+  "name": "OHS Academy",
+  "shortname": "OHS Academy",
+  "start_url": "/",
+  "background_color": "#000000",
+  "description": "كورسات طبية لكافة المراحل.",
+  "display": "standalone",
+  "id": "/",
+  "scope": "/",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/icons/192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icons/512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

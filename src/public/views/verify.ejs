@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="black">
+
+<%- include("./partials/header.ejs", { pageTitle: 'توثيق البريد الإلكتروني' }) %>
+
+<body class="min-h-screen bg-black">
+     <%- include("./partials/navbar.ejs") %>
+
+     <div class="min-h-screen flex items-center justify-center px-4 pb-24 pt-10 md:pt-24 md:pb-10">
+          <div class="w-full max-w-md">
+               <div class="card bg-blur border border-neutral-600 shadow-xl">
+                    <div class="card-body gap-5 text-center">
+                         <div class="flex justify-center">
+                              <i class="fi fi-sr-envelope-open text-4xl text-primary"></i>
+                         </div>
+                         <h1 class="text-xl font-bold text-white">توثيق البريد الإلكتروني</h1>
+
+                         <% if (typeof error !== 'undefined' && error) { %>
+                              <div class="alert alert-soft alert-error text-sm text-start" role="alert"><%= error %></div>
+                         <% } %>
+                         <% if (typeof note !== 'undefined' && note) { %>
+                              <div class="alert alert-soft alert-success text-sm text-start" role="alert"><%= note %></div>
+                         <% } %>
+
+                         <% if (!error && typeof note !== 'undefined' && note) { %>
+                              <a href="/login" class="btn btn-primary w-full">تسجيل الدخول الآن</a>
+                         <% } %>
+
+                         <% if (typeof newCode !== 'undefined' && newCode) { %>
+                              <form method="POST" action="/verify/<%= newCode %>">
+                                   <button type="submit" class="btn btn-soft btn-primary w-full">إعادة إرسال رمز التوثيق</button>
+                              </form>
+                         <% } %>
+                    </div>
+               </div>
+          </div>
+     </div>
+</body>
+</html>

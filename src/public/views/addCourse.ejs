@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="black">
+
+<%- include("./partials/header.ejs", { pageTitle: 'إضافة دورة جديدة' }) %>
+
+<body class="min-h-screen bg-black pb-24 md:pb-10 md:pt-15">
+     <%- include("./partials/navbar.ejs") %>
+
+     <div class="max-w-2xl mx-auto px-4 pt-6">
+          <h1 class="text-xl font-bold text-white mb-6">إضافة دورة جديدة</h1>
+
+          <form method="POST" enctype="multipart/form-data" action="/admin/add-course" class="flex flex-col gap-5">
+               <% if (typeof errors !== 'undefined' && errors) { %>
+                    <div class="alert alert-soft alert-error text-sm">
+                         <ul class="list-disc ps-4">
+                              <% errors.forEach(e => { %><li><%= e.msg %></li><% }) %>
+                         </ul>
+                    </div>
+               <% } %>
+               <% if (typeof error !== 'undefined' && error) { %>
+                    <div class="alert alert-soft alert-error text-sm"><%= error %></div>
+               <% } %>
+
+               <div class="card bg-blur border border-neutral-600">
+                    <div class="card-body gap-4">
+                         <div class="input-floating">
+                              <input type="text" name="title" id="courseTitle" placeholder="Second Semester..." class="input" required>
+                              <label class="input-floating-label" for="courseTitle">الاسم الكامل للدورة *</label>
+                         </div>
+
+                         <div class="input-floating">
+                              <input type="number" name="hours" id="courseHours" min="0" step="0.5" placeholder="0" class="input" required>
+                              <label class="input-floating-label" for="courseHours">عدد ساعات الدورة *</label>
+                         </div>
+
+                         <div>
+                              <label class="label-text" for="courseDescription">وصف الدورة *</label>
+                              <textarea name="description" id="courseDescription" rows="6" placeholder="وصف مفصّل..." class="textarea w-full" required></textarea>
+                         </div>
+
+                         <div class="input-floating">
+                              <input type="text" name="lang" id="courseLang" placeholder="اللغة العربية" class="input" required>
+                              <label class="input-floating-label" for="courseLang">لغة الدورة *</label>
+                         </div>
+
+                         <div class="input-floating">
+                              <input type="number" name="price" id="coursePrice" min="0" step="0.01" placeholder="0" class="input" required>
+                              <label class="input-floating-label" for="coursePrice">سعر الدورة بالدولار *</label>
+                         </div>
+
+                         <div>
+                              <label class="label-text mb-2 block">ما الذي سيتعلمه المشاهد *</label>
+                              <div class="flex flex-col gap-2">
+                                   <% for (let i = 1; i <= 5; i++) { %>
+                                   <textarea rows="2" maxlength="120" name="learnPoint"
+                                        placeholder="نقطة <%= i %>..." class="textarea w-full"></textarea>
+                                   <% } %>
+                              </div>
+                         </div>
+
+                         <div>
+                              <label class="label-text" for="thumbnail">رفع غلاف الدورة *</label>
+                              <input type="file" name="thumbnail" id="thumbnail" accept="image/*" class="input" required>
+                              <span class="helper-text">JPEG, PNG, WebP — الحد الأقصى 5 MB</span>
+                         </div>
+                    </div>
+               </div>
+
+               <div class="card bg-blur border border-neutral-600">
+                    <div class="card-body gap-4">
+                         <div class="flex items-center justify-between">
+                              <h3 class="text-white font-medium">إضافة الفصول والفيديوهات</h3>
+                              <button type="button" id="addChapter" class="btn btn-soft btn-primary btn-sm">
+                                   إضافة فصل
+                                   <i class="fi fi-sr-plus text-xs"></i>
+                              </button>
+                         </div>
+                         <div id="chaptersContainer" class="flex flex-col gap-4"></div>
+                    </div>
+               </div>
+
+               <button type="submit" class="btn btn-primary w-full">
+                    رفع الدورة
+                    <i class="fi fi-sr-cloud-upload text-sm"></i>
+               </button>
+          </form>
+     </div>
+
+     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+     <script src="/js/videoUpload.js"></script>
+     <script>
+          $(document).ready(function() {
+               function chapterIndex($chapter) {
+                    return $('#chaptersContainer > .chapter').index($chapter);
+               }
+
+               function renumberChapters() {
+                    $('#chaptersContainer > .chapter').each(function(newIdx) {
+                         var $chapter = $(this);
+                         $chapter.find('.chapter-heading').first().text('الفصل ' + (newIdx + 1));
+
+                         var classes = ($chapter.attr('class') || '').split(/\s+/).filter(function(c) {
+                              return !/^chapter-\d+$/.test(c);
+                         });
+                         classes.push('chapter-' + newIdx);
+                         $chapter.attr('class', classes.join(' '));
+
+                         $chapter.find('.removeChapter').attr('data-idx', newIdx);
+                         $chapter.find('.addVideo').attr('data-idx', newIdx);
+                         $chapter.find('input[name="videoChapter"]').val(newIdx);
+                    });
+               }
+
+               $('#addChapter').on('click', function() {
+                    var idx = $('#chaptersContainer > .chapter').length;
+                    var chapterHtml =
+                         '<div class="chapter chapter-' + idx + ' card bg-base-200/30 border border-neutral-600">' +
+                         '  <div class="card-body gap-3">' +
+                         '    <div class="flex items-center justify-between">' +
+                         '      <h3 class="chapter-heading text-white text-sm font-medium">الفصل ' + (idx + 1) + '</h3>' +
+                         '      <button type="button" class="removeChapter btn btn-text btn-circle btn-xs" data-idx="' + idx + '" aria-label="حذف الفصل">' +
+                         '        <i class="fi fi-sr-cross text-xs"></i>' +
+                         '      </button>' +
+                         '    </div>' +
+                         '    <input type="text" name="chapterTitle" placeholder="عنوان الفصل" class="input" required>' +
+                         '    <div class="videosContainer flex flex-col gap-3"></div>' +
+                         '    <button type="button" class="addVideo btn btn-soft btn-primary btn-sm self-start" data-idx="' + idx + '">' +
+                         '      إضافة فيديو <i class="fi fi-sr-plus text-xs"></i>' +
+                         '    </button>' +
+                         '  </div>' +
+                         '</div>';
+                    $('#chaptersContainer').append(chapterHtml);
+               });
+
+               $('#chaptersContainer').on('click', '.addVideo', function() {
+                    var chIdx = $(this).attr('data-idx');
+                    var videoHtml =
+                         '<div class="input-con video-field bg-blur border border-neutral-600 rounded-box p-3 flex flex-col gap-2">' +
+                         '  <input type="text" name="videoTitle" placeholder="عنوان الفيديو" class="input input-sm" required>' +
+                         '  <span class="text-white/40 text-xs">مجلد الفيديو المُرمّز (ناتج سكربت الترميز)</span>' +
+                         '  <input type="file" class="videoFolderInput input input-sm" webkitdirectory directory multiple required>' +
+                         '  <input type="hidden" name="videoId">' +
+                         '  <input type="hidden" name="keyHex">' +
+                         '  <input type="hidden" name="durationSeconds">' +
+                         '  <input type="hidden" name="qualitiesJson">' +
+                         '  <span class="upload-status text-xs text-white/60"></span>' +
+                         '  <input type="hidden" name="videoChapter" value="' + chIdx + '">' +
+                         '  <button type="button" class="removeVideo btn btn-text btn-error btn-xs self-start">إزالة الفيديو</button>' +
+                         '</div>';
+                    $(this).siblings('.videosContainer').append(videoHtml);
+               });
+
+               $('#chaptersContainer').on('change', '.videoFolderInput', async function() {
+                    var $row = $(this).closest('.video-field');
+                    var $status = $row.find('.upload-status');
+                    var fileInput = this;
+                    $status.removeClass('text-error text-success').addClass('text-white/60').text('جاري الرفع...');
+                    try {
+                         var manifest = await uploadEncodedVideo(fileInput.files, {
+                              onProgress: function(done, total) {
+                                   $status.text('جاري الرفع... (' + done + '/' + total + ')');
+                              },
+                         });
+                         $row.find('input[name="videoId"]').val(manifest.videoId);
+                         $row.find('input[name="keyHex"]').val(manifest.keyHex);
+                         $row.find('input[name="durationSeconds"]').val(manifest.durationSeconds || 0);
+                         $row.find('input[name="qualitiesJson"]').val(JSON.stringify(manifest.qualities));
+                         $status.removeClass('text-white/60').addClass('text-success').text('تم الرفع ✓');
+                         if (!$row.find('input[name="videoTitle"]').val() && manifest.title) {
+                              $row.find('input[name="videoTitle"]').val(manifest.title);
+                         }
+                    } catch (err) {
+                         $status.removeClass('text-white/60').addClass('text-error').text('خطأ: ' + err.message);
+                    }
+               });
+
+               $('#chaptersContainer').on('click', '.removeChapter', function() {
+                    $(this).closest('.chapter').remove();
+                    renumberChapters();
+               });
+
+ 
+               $('#chaptersContainer').on('click', '.removeVideo', function() {
+                    $(this).closest('.video-field').remove();
+               });
+
+               $('form').on('submit', function(e) {
+                    var missing = false;
+                    $('.video-field').each(function() {
+                         if (!$(this).find('input[name="videoId"]').val()) missing = true;
+                    });
+                    if (missing) {
+                         e.preventDefault();
+                         alert('يرجى الانتظار حتى اكتمال رفع جميع الفيديوهات قبل الحفظ.');
+                    }
+               });
+
+          });
+     </script>
+     <br><br><br><br><br>
+
+</body>
+</html>

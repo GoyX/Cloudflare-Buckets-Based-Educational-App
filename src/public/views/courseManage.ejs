@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="black">
+
+<%- include("./partials/header.ejs", { pageTitle: 'إدارة: ' + course.title }) %>
+
+<body class="min-h-screen bg-black pb-24 md:pb-10 md:pt-15">
+     <%- include("./partials/navbar.ejs") %>
+
+     <div class="max-w-2xl mx-auto px-4 pt-6 flex flex-col gap-5">
+          <h1 class="text-xl font-bold text-white"><%= course.title %></h1>
+
+          <% if (typeof errors !== 'undefined' && errors) { %>
+               <div class="alert alert-soft alert-error text-sm">
+                    <ul class="list-disc ps-4">
+                         <% errors.forEach(e => { %><li><%= e.msg %></li><% }) %>
+                    </ul>
+               </div>
+          <% } %>
+          <% if (typeof error !== 'undefined' && error) { %>
+               <div class="alert alert-soft alert-error text-sm"><%= error %></div>
+          <% } %>
+
+          <div class="card bg-blur border border-neutral-600">
+               <div class="card-body gap-1">
+                    <p class="text-primary font-semibold">السعر: $<%= course.price %></p>
+                    <ul class="flex flex-wrap gap-x-5 gap-y-2 text-sm text-white/70 mt-2">
+                         <li class="flex items-center gap-1.5"><i class="fi fi-sr-users text-primary"></i> <%= course.students %> طالب</li>
+                         <li class="flex items-center gap-1.5"><i class="fi fi-sr-language text-primary"></i> <%= course.lang %></li>
+                         <li class="flex items-center gap-1.5"><i class="fi fi-sr-clock-three text-primary"></i> <%= course.hours %> ساعة</li>
+                         <li class="flex items-center gap-1.5"><i class="fi fi-sr-chalkboard-user text-primary"></i> <%= course.lecturesNumber %> محاضرة</li>
+                    </ul>
+               </div>
+          </div>
+
+          <form method="POST" action="/admin/courses/<%= course._id %>/delete"
+                onsubmit="return confirm('هل أنت متأكد من حذف هذه الدورة؟ لا يمكن التراجع عن هذا الإجراء.')">
+               <button class="btn btn-soft btn-error btn-sm w-full" type="submit">
+                    حذف الدورة
+                    <i class="fi fi-sr-trash text-xs"></i>
+               </button>
+          </form>
+
+          <div class="card bg-blur border border-neutral-600">
+               <div class="card-body gap-3">
+                    <p class="text-white font-medium">إضافة فصل جديد</p>
+                    <form method="POST" action="/manage/<%= course._id %>/add-chapter" class="flex gap-2">
+                         <input type="text" name="chapTitle" placeholder="عنوان الفصل" required class="input flex-1">
+                         <button type="submit" class="btn btn-primary">
+                              إضافة
+                              <i class="fi fi-sr-plus text-xs"></i>
+                         </button>
+                    </form>
+               </div>
+          </div>
+
+          <div class="card bg-blur border border-neutral-600">
+               <div class="card-body gap-3">
+                    <p class="text-white font-medium">إضافة فيديو جديد</p>
+                    <% if (course.chapters.length === 0) { %>
+                         <p class="text-white/40 text-sm">أضف فصلاً أولاً قبل إضافة فيديوهات.</p>
+                    <% } else { %>
+                    <form method="POST" action="/manage/<%= course._id %>/add-video" id="addVideoForm" class="flex flex-col gap-3">
+                         <div>
+                              <label class="label-text" for="chapterSelect">الفصل</label>
+                              <select name="chapterId" id="chapterSelect" required class="select w-full">
+                                   <% course.chapters.forEach(ch => { %>
+                                        <option value="<%= ch._id %>"><%= ch.chapTitle %></option>
+                                   <% }) %>
+                              </select>
+                         </div>
+
+                         <input type="text" name="videoTitle" placeholder="عنوان الفيديو" required class="input">
+
+                         <div>
+                              <label class="label-text" for="videoFolderInput">مجلد الفيديو المُرمّز (ناتج سكربت الترميز)</label>
+                              <input type="file" id="videoFolderInput" webkitdirectory directory multiple required class="input">
+                         </div>
+
+                         <input type="hidden" name="videoId">
+                         <input type="hidden" name="keyHex">
+                         <input type="hidden" name="durationSeconds">
+                         <input type="hidden" name="qualitiesJson">
+                         <p id="uploadStatus" class="text-sm text-white/60"></p>
+
+                         <button type="submit" class="btn btn-primary" id="addVideoSubmitBtn" disabled>
+                              إضافة فيديو
+                              <i class="fi fi-sr-plus text-sm"></i>
+                         </button>
+                    </form>
+                    <% } %>
+               </div>
+          </div>
+
+          <div class="card bg-blur border border-neutral-600">
+               <div class="card-body gap-4">
+                    <p class="text-white font-medium">محتوى الدورة</p>
+                    <% if (course.chapters.length === 0) { %>
+                         <p class="text-white/40 text-sm">لا توجد فصول بعد.</p>
+                    <% } %>
+                    <% course.chapters.forEach((chapter, ci) => { %>
+                         <div class="border-t border-neutral-600 pt-4 first:border-t-0 first:pt-0">
+                              <h4 class="text-white text-sm font-medium mb-2">الفصل <%= ci + 1 %>: <%= chapter.chapTitle %></h4>
+                              <% if (chapter.videos.length === 0) { %>
+                                   <p class="text-white/40 text-xs">لا توجد فيديوهات في هذا الفصل.</p>
+                              <% } %>
+                              <ul class="flex flex-col gap-2">
+                                   <% chapter.videos.forEach((video, vi) => { %>
+                                        <li class="flex items-center justify-between gap-3 text-sm text-white/80">
+                                             <span><%= vi + 1 %>. <%= video.title %></span>
+                                             <form method="POST"
+                                                   action="/manage/<%= course._id %>/delete-video/<%= chapter._id %>/<%= video._id %>"
+                                                   onsubmit="return confirm('حذف الفيديو: <%= video.title %>؟')">
+                                                  <button type="submit" class="btn btn-text btn-circle btn-xs" title="حذف الفيديو" aria-label="حذف الفيديو">
+                                                       <i class="fi fi-sr-trash text-error text-xs"></i>
+                                                  </button>
+                                             </form>
+                                        </li>
+                                   <% }) %>
+                              </ul>
+                         </div>
+                    <% }) %>
+               </div>
+          </div>
+     </div>
+
+     <script src="/js/videoUpload.js"></script>
+     <script>
+          (function() {
+               var folderInput = document.getElementById("videoFolderInput");
+               if (!folderInput) return;
+
+               var submitBtn = document.getElementById("addVideoSubmitBtn");
+               var statusEl = document.getElementById("uploadStatus");
+               var form = document.getElementById("addVideoForm");
+
+               folderInput.addEventListener("change", async function() {
+                    submitBtn.disabled = true;
+                    statusEl.textContent = "جاري الرفع...";
+                    statusEl.className = "text-sm text-white/60";
+                    try {
+                         var manifest = await uploadEncodedVideo(folderInput.files, {
+                              onProgress: function(done, total) {
+                                   statusEl.textContent = "جاري الرفع... (" + done + "/" + total + ")";
+                              },
+                         });
+                         form.videoId.value = manifest.videoId;
+                         form.keyHex.value = manifest.keyHex;
+                         form.durationSeconds.value = manifest.durationSeconds || 0;
+                         form.qualitiesJson.value = JSON.stringify(manifest.qualities);
+                         if (!form.videoTitle.value && manifest.title) {
+                              form.videoTitle.value = manifest.title;
+                         }
+                         statusEl.textContent = "تم الرفع بنجاح ✓";
+                         statusEl.className = "text-sm text-success";
+                         submitBtn.disabled = false;
+                    } catch (err) {
+                         statusEl.textContent = "خطأ: " + err.message;
+                         statusEl.className = "text-sm text-error";
+                         submitBtn.disabled = true;
+                    }
+               });
+          })();
+     </script>
+     <br><br><br><br><br>
+
+</body>
+</html>

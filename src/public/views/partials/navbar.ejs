@@ -1,0 +1,67 @@
+<navbar>
+     <div class="nav-bar bg-blur radial-border h-21 md:h-15 flex justify-center items-center w-full md:top-0 md:border-b border-t md:border-t-0">
+               <ul class="flex justify-between items-center mb-3! md:mb-0! px-8! w-90">
+                    <div class="tooltip">
+                         <li class="list-none m-0!">
+                              <a id="home-link" class="no-underline! tooltip-toggle flex justify-center items-center flex-col" href="/" aria-label="Tooltip">
+                                   <i class="fi fi-sr-home text-neutral-300"></i>
+                                   <span class="md:hidden text-white text-xs">الرئيسية</span>
+                              </a>
+                              <span class="tooltip-content tooltip-shown:opacity-100 tooltip-shown:visible" role="tooltip">
+                                   <span class="tooltip-body hidden md:block bg-transparent text-white">الرئيسية</span>
+                              </span>
+                         </li>
+                    </div>
+                    <div class="tooltip">
+                         <li class="list-none m-0!">
+                              <a id="courses-link" class="no-underline! flex justify-center items-center flex-col" href="/courses">
+                              <i class="fi fi-sr-e-learning text-neutral-300"></i>
+                              <span class="text-white text-xs md:hidden">الدورات</span>
+                              </a>
+                              <span class="tooltip-content tooltip-shown:opacity-100 tooltip-shown:visible" role="tooltip">
+                                   <span class="tooltip-body hidden md:block bg-transparent text-white">الدورات</span>
+                              </span>
+                         </li>
+                    </div>
+                    <% if (user) { %>
+                         <div class="tooltip">
+                         <li class="list-none m-0!">
+                              <a id="profile-link" class="no-underline! flex justify-center items-center flex-col" href="/profile">
+                                   <i class="fi fi-sr-user text-neutral-300"></i>
+                                   <span class="text-white text-xs md:hidden">حسابي</span>
+                              </a>
+                              <span class="tooltip-content tooltip-shown:opacity-100 tooltip-shown:visible" role="tooltip">
+                                   <span class="tooltip-body hidden md:block bg-transparent text-white">حسابي</span>
+                              </span>
+                         </li>
+                    </div>
+                         <% if (user.admin) { %>
+                              <div class="tooltip">
+                         <li class="list-none m-0!">
+                              <a id="dashboard-link" class="no-underline! flex justify-center items-center flex-col" href="/dashboard">
+                                        <i class="fi fi-sr-dashboard-monitor text-neutral-300"></i>
+                                        <span class="text-white text-xs md:hidden">اللوحة</span>
+                                   </a>
+                              <span class="tooltip-content tooltip-shown:opacity-100 tooltip-shown:visible" role="tooltip">
+                                   <span class="tooltip-body hidden md:block bg-transparent text-white">اللوحة</span>
+                              </span>
+                         </li>
+                    </div>
+                         <% } %>
+                    <% } else { %>
+                         <div class="tooltip">
+                         <li class="list-none m-0!">
+                              <a id="signup-link" class="no-underline! flex justify-center items-center flex-col" href="/signup">
+                                        <i class="fi fi-sr-person-circle-plus text-neutral-300"></i>
+                                        <span class="text-white text-xs md:hidden">التسجيل</span>
+                                   </a>
+                              <span class="tooltip-content tooltip-shown:opacity-100 tooltip-shown:visible" role="tooltip">
+                                   <span class="tooltip-body hidden md:block bg-transparent text-white">التسجيل</span>
+                              </span>
+                         </li>
+                    </div>
+                    <% } %>
+               </ul>
+     </div>
+</navbar>
+<script src="/js/navbar.js"></script>
