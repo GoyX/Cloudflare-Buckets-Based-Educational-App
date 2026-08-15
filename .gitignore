@@ -10,3 +10,4 @@ Thumbs.db
 .idea/
 public/uploads/*
 !public/uploads/.gitkeep
+scripts/
