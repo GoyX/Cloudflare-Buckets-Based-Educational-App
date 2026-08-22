@@ -3,7 +3,7 @@ const {
   sanitizeRelativePath,
 } = require("../utils/videoDelivery.js");
 
-const MAX_FILES_PER_VIDEO = 500;
+const MAX_FILES_PER_VIDEO = 10000;
 
 const getUploadUrlsPOST = async (req, res) => {
   try {
