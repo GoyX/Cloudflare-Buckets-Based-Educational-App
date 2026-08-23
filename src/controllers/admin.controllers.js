@@ -4,6 +4,7 @@ const { validationResult } = require("express-validator");
 const connectDB = require("../utils/db.js");
 const Course = require("../models/course.js");
 const User = require("../models/user.js");
+const sessionManager = require("../utils/sessionManager.js");
 
 const dashboardGET = async (req, res) => {
   try {
@@ -327,11 +328,14 @@ const userManageGET = async (req, res) => {
       targetUser.courses.map((id) => id.toString()),
     );
 
+    const activeSessions = await sessionManager.getActiveSessions(targetUser._id);
+
     return res.render("userManage", {
       css: "userManage.css",
       userM: targetUser,
       courses: allCourses,
       ownedCourseIds,
+      activeSessions,
       user: req.user,
       error: null,
       note: null,
@@ -412,6 +416,80 @@ const userManagePOST = async (req, res) => {
   }
 };
 
+// Admin-only: flips whether this specific user is excused from the
+// single-device session limit (same exemption admins get automatically —
+// see utils/sessionManager.js). Deliberately a separate route/handler
+// from userManagePOST rather than folded into its existing action
+// branches, so the existing add/remove-course logic there stays
+// completely untouched.
+const toggleSessionExemptPOST = async (req, res) => {
+  try {
+    const connect = await connectDB();
+    if (!connect) {
+      return res.render("error", {
+        css: "error.css",
+        error: "فشل الاتصال بالخدمة",
+        back: "/dashboard",
+        user: req.user,
+      });
+    }
+
+    const { userId } = req.params;
+    const targetUser = await User.findOne({ userId: Number(userId) });
+    if (!targetUser) {
+      return res.render("error", {
+        css: "error.css",
+        error: "المستخدم غير موجود",
+        back: "/dashboard",
+        user: req.user,
+      });
+    }
+
+    targetUser.sessionLimitExempt = !targetUser.sessionLimitExempt;
+    await targetUser.save();
+
+    return res.redirect(`/admin/manage/${userId}`);
+  } catch (error) {
+    console.error("toggleSessionExemptPOST error:", error);
+    return res.render("error", {
+      css: "error.css",
+      error: "فشل تحديث إعدادات الجلسة",
+      back: `/admin/manage/${req.params.userId}`,
+      user: req.user,
+    });
+  }
+};
+
+// Admin-only: ends one specific active session (e.g. a suspicious device
+// spotted in the list on the user-management page) without waiting for
+// it to be naturally superseded by a new login.
+const revokeSessionPOST = async (req, res) => {
+  try {
+    const connect = await connectDB();
+    if (!connect) {
+      return res.render("error", {
+        css: "error.css",
+        error: "فشل الاتصال بالخدمة",
+        back: "/dashboard",
+        user: req.user,
+      });
+    }
+
+    const { userId, sessionId } = req.params;
+    await sessionManager.revokeSession(sessionId);
+
+    return res.redirect(`/admin/manage/${userId}`);
+  } catch (error) {
+    console.error("revokeSessionPOST error:", error);
+    return res.render("error", {
+      css: "error.css",
+      error: "فشل إنهاء الجلسة",
+      back: `/admin/manage/${req.params.userId}`,
+      user: req.user,
+    });
+  }
+};
+
 module.exports = {
   dashboardGET,
   dashboardPOST,
@@ -421,4 +499,6 @@ module.exports = {
   deleteCoursePOST,
   userManageGET,
   userManagePOST,
+  toggleSessionExemptPOST,
+  revokeSessionPOST,
 };

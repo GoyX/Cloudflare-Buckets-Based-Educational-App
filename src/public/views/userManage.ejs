@@ -29,6 +29,50 @@
                </div>
           </div>
 
+          <div class="card bg-blur border border-neutral-600 mb-6">
+               <div class="card-body gap-4">
+                    <div class="flex items-center justify-between">
+                         <p class="text-white font-medium">الجلسات النشطة</p>
+                         <span class="badge <%= userM.admin || userM.sessionLimitExempt ? 'badge-success' : 'badge-neutral' %> badge-soft text-xs">
+                              <%= userM.admin ? 'مشرف (غير مقيّد)' : userM.sessionLimitExempt ? 'مستثنى من القيد' : 'مقيّد بجهاز واحد' %>
+                         </span>
+                    </div>
+
+                    <% if (!userM.admin) { %>
+                    <form method="POST" action="/admin/manage/<%= userM.userId %>/session-exempt">
+                         <button type="submit" class="btn btn-soft <%= userM.sessionLimitExempt ? 'btn-error' : 'btn-primary' %> btn-sm w-full">
+                              <%= userM.sessionLimitExempt ? 'إعادة تفعيل قيد الجهاز الواحد' : 'استثناء من قيد الجهاز الواحد' %>
+                         </button>
+                    </form>
+                    <% } %>
+
+                    <% if (!activeSessions || activeSessions.length === 0) { %>
+                         <p class="text-white/40 text-sm">لا توجد جلسات نشطة حالياً.</p>
+                    <% } else { %>
+                         <ul class="flex flex-col gap-2">
+                              <% activeSessions.forEach(session => { %>
+                                   <li class="flex items-center justify-between gap-3 text-sm bg-base-200/30 rounded-box p-3">
+                                        <div class="text-white/70">
+                                             <p>IP: <span class="font-mono text-white"><%= session.ip || 'غير معروف' %></span></p>
+                                             <p class="text-xs text-white/40">
+                                                  جهاز: <%= session.deviceId ? session.deviceId.slice(0, 8) : 'غير معروف' %>
+                                                  <span class="mx-1">|</span>
+                                                  آخر نشاط: <%= new Date(session.lastSeenAt).toLocaleString('ar-EG') %>
+                                             </p>
+                                        </div>
+                                        <form method="POST" action="/admin/manage/<%= userM.userId %>/sessions/<%= session.sessionId %>/revoke">
+                                             <button type="submit" class="btn btn-text btn-error btn-xs" title="إنهاء الجلسة">
+                                                  إنهاء
+                                                  <i class="fi fi-sr-cross text-xs"></i>
+                                             </button>
+                                        </form>
+                                   </li>
+                              <% }) %>
+                         </ul>
+                    <% } %>
+               </div>
+          </div>
+
           <p class="text-white font-medium mb-3">الدورات</p>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

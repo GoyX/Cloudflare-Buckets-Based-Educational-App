@@ -43,6 +43,14 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // Only ever set via the admin panel (see admin.controllers.js) —
+    // excuses this specific user from the single-device session limit,
+    // same as admins are automatically excused. For a legitimate
+    // multi-device need on a case-by-case basis, not a general opt-out.
+    sessionLimitExempt: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true },
 );

@@ -7,6 +7,7 @@ const { validationResult } = require("express-validator");
 const connectDB = require("../utils/db.js");
 const User = require("../models/user.js");
 const Otp = require("../models/otp.js");
+const sessionManager = require("../utils/sessionManager.js");
 
 const generateOtp = () => Math.floor(100000 + Math.random() * 900000);
 
@@ -281,8 +282,26 @@ const loginPOST = async (req, res) => {
       });
     }
 
+    const clientIp = sessionManager.getClientIp(req);
+    const deviceId = sessionManager.getOrCreateDeviceId(req, res);
+
+    const blocked = await sessionManager.isBlocked({ ip: clientIp, deviceId });
+    if (blocked) {
+      return renderLogin(res, req, {
+        error: "تم حظر هذا الجهاز أو عنوان IP من الدخول، تواصل مع الدعم إذا كنت تعتقد أن هذا خطأ",
+      });
+    }
+
+    const sessionId = await sessionManager.createSession({
+      userId: user._id,
+      ip: clientIp,
+      deviceId,
+      userAgent: req.headers["user-agent"] || "",
+      exempt: user.admin || user.sessionLimitExempt,
+    });
+
     const token = jwt.sign(
-      { data: user.email, admin: user.admin },
+      { data: user.email, admin: user.admin, sessionId },
       process.env.PRIVATE_KEY,
       { expiresIn: "7d" },
     );
@@ -460,7 +479,19 @@ const resetPasswordPOST = async (req, res) => {
   }
 };
 
-const logout = (req, res) => {
+const logout = async (req, res) => {
+  try {
+    if (req.user && req.user.sessionId) {
+      await sessionManager.revokeSession(req.user.sessionId);
+    }
+  } catch (error) {
+    // Not fatal to the logout itself — the cookie still gets cleared
+    // either way. If this specific delete fails, the entry is only
+    // reachable again via a JWT that verifies successfully, which caps
+    // its real-world exposure at the token's own 7-day expiry either
+    // way (see auth.controllers.js's loginPOST and utils/jwt.js).
+    console.error("logout session revoke failed:", error);
+  }
   res.clearCookie("toJtkn");
   return res.redirect("/login");
 };

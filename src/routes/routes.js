@@ -7,6 +7,7 @@ const AdminControllers = require("../controllers/admin.controllers.js");
 const WatchControllers = require("../controllers/watch.controllers.js");
 const StreamControllers = require("../controllers/stream.controllers.js");
 const UploadControllers = require("../controllers/upload.controllers.js");
+const SecurityControllers = require("../controllers/security.controllers.js");
 
 const validator = require("../utils/validator.js");
 const protectRoute = require("../utils/jwt.js");
@@ -41,7 +42,7 @@ router.post(
   AuthControllers.loginPOST,
 );
 
-router.get("/logout", AuthControllers.logout);
+router.get("/logout", protectRoute.checkAuth, AuthControllers.logout);
 
 router.get("/forgot-password", AuthControllers.forgotPasswordGET);
 router.post(
@@ -152,6 +153,24 @@ router.post(
   "/admin/manage/:userId",
   ...adminGuard,
   AdminControllers.userManagePOST,
+);
+router.post(
+  "/admin/manage/:userId/session-exempt",
+  ...adminGuard,
+  AdminControllers.toggleSessionExemptPOST,
+);
+router.post(
+  "/admin/manage/:userId/sessions/:sessionId/revoke",
+  ...adminGuard,
+  AdminControllers.revokeSessionPOST,
+);
+
+router.get("/admin/security", ...adminGuard, SecurityControllers.securityGET);
+router.post("/admin/security/block", ...adminGuard, SecurityControllers.blockPOST);
+router.post(
+  "/admin/security/unblock/:blockId",
+  ...adminGuard,
+  SecurityControllers.unblockPOST,
 );
 
 router.get("/offline", MainControllers.offlineGET);
