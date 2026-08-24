@@ -51,7 +51,7 @@ const sanitizeRelativePath = (relativePath) => {
   return normalized;
 };
 
-const getUploadUrl = async (videoId, relativePath, expiresIn = 900) => {
+const getUploadUrl = async (videoId, relativePath, expiresIn = 21600) => {
   const key = videoObjectKey(videoId, relativePath);
   const command = new PutObjectCommand({ Bucket: BUCKET, Key: key });
   return getSignedUrl(r2, command, { expiresIn });
