@@ -5,6 +5,8 @@ const {
   HeadObjectCommand,
 } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const { NodeHttpHandler } = require("@smithy/node-http-handler");
+const https = require("https");
 
 for (const key of [
   "R2_ACCOUNT_ID",
@@ -29,6 +31,14 @@ const r2 = new S3Client({
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
   },
   forcePathStyle: true,
+  requestHandler: new NodeHttpHandler({
+    httpsAgent: new https.Agent({
+      maxSockets: 500,
+      keepAlive: true,
+    }),
+    connectionTimeout: 6000,
+    requestTimeout: 30000,
+  }),
 });
 
 const BUCKET = process.env.R2_BUCKET;
