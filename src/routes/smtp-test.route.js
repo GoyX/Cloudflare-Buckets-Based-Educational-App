@@ -1,15 +1,3 @@
-// TEMPORARY DIAGNOSTIC ROUTE — delete this file and its require() line
-// in app.js once you're done testing.
-//
-// Usage:
-//   1. Save this as src/routes/smtp-test.route.js
-//   2. In app.js, add near your other route mounts:
-//        app.use(require("./routes/smtp-test.route.js"));
-//   3. Deploy.
-//   4. Visit https://<your-app>.onrender.com/smtp-test in the browser.
-//   5. Read the JSON result.
-//   6. Remove the require() line from app.js and delete this file.
-
 const express = require("express");
 const nodemailer = require("nodemailer");
 

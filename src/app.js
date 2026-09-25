@@ -10,12 +10,6 @@ const path = require("path");
 
 const app = express();
 
-// Required for req.ip to resolve to the real client IP behind a reverse
-// proxy (Render, or any platform like it) — without this, every visitor
-// would resolve to the proxy's own address, making IP-based blocking
-// (see utils/sessionManager.js) either useless or, worse, capable of
-// blocking every visitor at once. `1` trusts exactly one hop, matching a
-// standard single-proxy deployment.
 app.set("trust proxy", 1);
 
 app.set("view engine", "ejs");

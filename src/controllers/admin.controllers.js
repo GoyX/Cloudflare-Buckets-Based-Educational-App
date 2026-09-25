@@ -416,12 +416,6 @@ const userManagePOST = async (req, res) => {
   }
 };
 
-// Admin-only: flips whether this specific user is excused from the
-// single-device session limit (same exemption admins get automatically —
-// see utils/sessionManager.js). Deliberately a separate route/handler
-// from userManagePOST rather than folded into its existing action
-// branches, so the existing add/remove-course logic there stays
-// completely untouched.
 const toggleSessionExemptPOST = async (req, res) => {
   try {
     const connect = await connectDB();
@@ -460,9 +454,6 @@ const toggleSessionExemptPOST = async (req, res) => {
   }
 };
 
-// Admin-only: ends one specific active session (e.g. a suspicious device
-// spotted in the list on the user-management page) without waiting for
-// it to be naturally superseded by a new login.
 const revokeSessionPOST = async (req, res) => {
   try {
     const connect = await connectDB();

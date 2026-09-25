@@ -485,11 +485,6 @@ const logout = async (req, res) => {
       await sessionManager.revokeSession(req.user.sessionId);
     }
   } catch (error) {
-    // Not fatal to the logout itself — the cookie still gets cleared
-    // either way. If this specific delete fails, the entry is only
-    // reachable again via a JWT that verifies successfully, which caps
-    // its real-world exposure at the token's own 7-day expiry either
-    // way (see auth.controllers.js's loginPOST and utils/jwt.js).
     console.error("logout session revoke failed:", error);
   }
   res.clearCookie("toJtkn");

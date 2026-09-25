@@ -11,7 +11,7 @@ function fail(message) {
 async function main() {
   const origins = process.argv.slice(2);
   if (origins.length === 0) {
-    fail('Usage: node scripts/set-r2-cors.js "http://localhost:3000" ["https://yourdomain.com" ...]');
+    fail('Usage: node scripts/set-r2-cors.js "http://localhost:3000"');
   }
 
   for (const key of ["R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET"]) {

@@ -1,8 +1,3 @@
-// Admin-only IP/device blocklist management. Deliberately its own file
-// rather than folded into admin.controllers.js — this feature is net new
-// and self-contained, so keeping it separate means zero risk of
-// disturbing the existing, working admin functionality in that file.
-
 const connectDB = require("../utils/db.js");
 const Block = require("../models/block.js");
 const User = require("../models/user.js");
@@ -68,8 +63,6 @@ const blockPOST = async (req, res) => {
       });
     }
 
-    // Same IP/device blocked twice is a no-op, not an error — the
-    // unique index on {type, value} would otherwise throw here.
     const adminDoc = req.user ? await User.findOne({ email: req.user.data }, "_id") : null;
 
     await Block.updateOne(

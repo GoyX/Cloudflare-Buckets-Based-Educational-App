@@ -70,8 +70,6 @@ async function uploadEncodedVideo(fileList, { onProgress } = {}) {
     throw new Error(presignData.error || "فشل توليد روابط الرفع");
   }
 
-  // Fetch a fresh presigned URL for a single file (used on retry, since a
-  // batch-issued URL may have expired by the time we get to a later file).
   async function resignOne(relativePath) {
     const res = await fetch("/admin/videos/upload-urls", {
       method: "POST",
@@ -86,11 +84,6 @@ async function uploadEncodedVideo(fileList, { onProgress } = {}) {
   }
 
   const MAX_ATTEMPTS = 3;
-  // How many segments to upload at once. R2/S3 handles this level of
-  // concurrency fine; this is mainly bounded by the browser's per-origin
-  // connection limit (~6 for HTTP/1.1, much higher for HTTP/2, which R2
-  // uses). 6 is a safe, noticeably-faster default without overwhelming
-  // slower connections.
   const CONCURRENCY = 6;
 
   async function uploadOne(i) {
@@ -102,9 +95,6 @@ async function uploadEncodedVideo(fileList, { onProgress } = {}) {
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
       if (attempt > 1) {
-        // Retry with a freshly-signed URL — the original may have expired
-        // (batch URLs are only valid for a limited time and this is an
-        // upload of many files).
         try {
           url = await resignOne(relativePath);
         } catch (resignErr) {
@@ -112,7 +102,6 @@ async function uploadEncodedVideo(fileList, { onProgress } = {}) {
             `[videoUpload] failed to re-sign URL for ${relativePath}:`,
             resignErr,
           );
-          // fall through and try the stale URL again as a last resort
         }
       }
 
@@ -144,10 +133,6 @@ async function uploadEncodedVideo(fileList, { onProgress } = {}) {
           `[videoUpload] R2 rejected the upload (file: ${relativePath}, status: ${putRes.status}, attempt: ${attempt}):`,
           detail,
         );
-        // 403 on a PUT to a presigned URL is almost always an expired or
-        // invalid signature — worth retrying with a fresh URL. Other
-        // statuses are unlikely to be fixed by retrying, but we still give
-        // it a couple of attempts in case of a transient issue.
         if (attempt === MAX_ATTEMPTS) {
           throw new Error(
             `رفض R2 رفع الملف "${relativePath}" (${lastStatusErr.status}) بعد ${MAX_ATTEMPTS} محاولات — ` +
@@ -158,13 +143,10 @@ async function uploadEncodedVideo(fileList, { onProgress } = {}) {
         continue;
       }
 
-      return; // success
+      return;
     }
   }
 
-  // Simple concurrency pool: CONCURRENCY workers pull the next index from a
-  // shared cursor until the queue is drained. The first failure (after its
-  // own retries are exhausted) aborts the whole upload.
   let done = 0;
   let nextIndex = 0;
   let firstError = null;
