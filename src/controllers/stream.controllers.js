@@ -1,5 +1,7 @@
+const { pipeline } = require("stream");
 const Course = require("../models/course.js");
 const User = require("../models/user.js");
+const connectDB = require("../utils/db.js");
 const {
   videoObjectKey,
   getObjectBuffer,
@@ -9,15 +11,40 @@ const {
 const QUALITY_LABEL_RE = /^[a-zA-Z0-9_-]+$/;
 const SEGMENT_NAME_RE = /^[a-zA-Z0-9_.-]+\.ts$/;
 
+const QUERY_TIMEOUT_MS = 8000;
+
+const stripConditionalHeaders = (req) => {
+  delete req.headers["if-none-match"];
+  delete req.headers["if-modified-since"];
+};
+
+const failStream = (res, label, error) => {
+  console.error(`${label} error:`, error);
+  if (res.headersSent) return res.end();
+  return res.sendStatus(error && error.code === "DB_UNAVAILABLE" ? 503 : 404);
+};
+
 const loadOwnedVideo = async (req, videoId) => {
   if (!req.user) return null;
 
-  const userDoc = await User.findOne({ email: req.user.data }, "courses");
+  const connect = await connectDB();
+  if (!connect) {
+    const dbError = new Error("Database unavailable");
+    dbError.code = "DB_UNAVAILABLE";
+    throw dbError;
+  }
+
+  const userDoc = await User.findOne(
+    { email: req.user.data },
+    "courses",
+  ).maxTimeMS(QUERY_TIMEOUT_MS);
   if (!userDoc) return null;
 
   const course = await Course.findOne({
     "chapters.videos.videoId": videoId,
-  }).select("+chapters.videos.keyHex");
+  })
+    .select("+chapters.videos.keyHex")
+    .maxTimeMS(QUERY_TIMEOUT_MS);
   if (!course) return null;
 
   const ownsThisCourse = userDoc.courses.some(
@@ -36,6 +63,7 @@ const noStore = (res) => res.set("Cache-Control", "no-store, private");
 
 const masterPlaylistGET = async (req, res) => {
   try {
+    stripConditionalHeaders(req);
     const { videoId } = req.params;
     const owned = await loadOwnedVideo(req, videoId);
     if (!owned) return res.sendStatus(403);
@@ -54,13 +82,13 @@ const masterPlaylistGET = async (req, res) => {
 
     noStore(res).type("application/vnd.apple.mpegurl").send(rewritten);
   } catch (error) {
-    console.error("masterPlaylistGET error:", error);
-    return res.sendStatus(404);
+    return failStream(res, "masterPlaylistGET", error);
   }
 };
 
 const qualityPlaylistGET = async (req, res) => {
   try {
+    stripConditionalHeaders(req);
     const { videoId, quality } = req.params;
     if (!QUALITY_LABEL_RE.test(quality)) return res.sendStatus(400);
 
@@ -86,8 +114,7 @@ const qualityPlaylistGET = async (req, res) => {
 
     noStore(res).type("application/vnd.apple.mpegurl").send(rewritten);
   } catch (error) {
-    console.error("qualityPlaylistGET error:", error);
-    return res.sendStatus(404);
+    return failStream(res, "qualityPlaylistGET", error);
   }
 };
 
@@ -111,20 +138,19 @@ const segmentGET = async (req, res) => {
     noStore(res).type("video/mp2t");
     if (contentLength != null) res.set("Content-Length", String(contentLength));
 
-    stream.on("error", (err) => {
-      console.error("segment stream error:", err);
-      if (!res.headersSent) res.sendStatus(500);
-      else res.end();
+    pipeline(stream, res, (err) => {
+      if (err && err.code !== "ERR_STREAM_PREMATURE_CLOSE") {
+        console.error("segment stream error:", err);
+      }
     });
-    stream.pipe(res);
   } catch (error) {
-    console.error("segmentGET error:", error);
-    return res.sendStatus(404);
+    return failStream(res, "segmentGET", error);
   }
 };
 
 const keyGET = async (req, res) => {
   try {
+    stripConditionalHeaders(req);
     const { videoId } = req.params;
     const owned = await loadOwnedVideo(req, videoId);
     if (!owned) return res.sendStatus(403);
@@ -133,8 +159,7 @@ const keyGET = async (req, res) => {
       .type("application/octet-stream")
       .send(Buffer.from(owned.video.keyHex, "hex"));
   } catch (error) {
-    console.error("keyGET error:", error);
-    return res.sendStatus(404);
+    return failStream(res, "keyGET", error);
   }
 };
 

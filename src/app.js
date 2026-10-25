@@ -1,6 +1,7 @@
 require("dotenv").config();
 
 const express = require("express");
+const mongoose = require("mongoose");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const connectDB = require("./utils/db.js");
@@ -27,8 +28,26 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use(require("./routes/smtp-test.route.js"));
-app.get("/healthz", (req, res) => {
-  res.status(200).json({ success: "true" });
+const pingDatabase = () => {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error("database ping timed out")), 3000);
+  });
+  const ping = mongoose.connection.readyState === 1 && mongoose.connection.db
+    ? mongoose.connection.db.admin().ping()
+    : Promise.reject(new Error("database not connected"));
+  return Promise.race([ping, timeout]).finally(() => clearTimeout(timer));
+};
+
+app.get("/healthz", async (req, res) => {
+  try {
+    await pingDatabase();
+    return res.status(200).json({ success: "true" });
+  } catch (error) {
+    console.error("healthz: database check failed:", error.message);
+    connectDB().catch(() => {});
+    return res.status(503).json({ success: "false" });
+  }
 });
 
 app.use(counter.count);

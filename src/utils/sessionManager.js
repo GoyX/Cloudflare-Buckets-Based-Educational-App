@@ -1,11 +1,19 @@
 const crypto = require("crypto");
 const SessionGroup = require("../models/session.js");
 const Block = require("../models/block.js");
+const connectDB = require("./db.js");
+
+const QUERY_TIMEOUT_MS = 8000;
+
+const requireDb = async () => {
+  const connect = await connectDB();
+  if (!connect) throw new Error("Database unavailable");
+};
 
 const MAX_SESSIONS = 1;
 
 const DEVICE_COOKIE = "deviceId";
-const DEVICE_COOKIE_MAX_AGE = 365 * 24 * 60 * 60 * 1000; 
+const DEVICE_COOKIE_MAX_AGE = 365 * 24 * 60 * 60 * 1000; // 1 year
 
 const getOrCreateDeviceId = (req, res) => {
   let deviceId = req.cookies && req.cookies[DEVICE_COOKIE];
@@ -29,11 +37,17 @@ const isBlocked = async ({ ip, deviceId }) => {
   if (deviceId) orConditions.push({ type: "device", value: deviceId });
   if (orConditions.length === 0) return false;
 
-  const hit = await Block.findOne({ $or: orConditions });
+  await requireDb();
+
+  const hit = await Block.findOne({ $or: orConditions }).maxTimeMS(
+    QUERY_TIMEOUT_MS,
+  );
   return !!hit;
 };
 
 const createSession = async ({ userId, ip, deviceId, userAgent, exempt }) => {
+  await requireDb();
+
   const sessionId = crypto.randomUUID();
   const entry = {
     sessionId,
@@ -58,7 +72,11 @@ const createSession = async ({ userId, ip, deviceId, userAgent, exempt }) => {
 const validateSession = async (sessionId, currentIp) => {
   if (!sessionId) return null;
 
-  const group = await SessionGroup.findOne({ "sessions.sessionId": sessionId });
+  await requireDb();
+
+  const group = await SessionGroup.findOne({
+    "sessions.sessionId": sessionId,
+  }).maxTimeMS(QUERY_TIMEOUT_MS);
   if (!group) return null;
 
   const session = group.sessions.find((s) => s.sessionId === sessionId);
@@ -87,6 +105,8 @@ const validateSession = async (sessionId, currentIp) => {
 };
 
 const revokeSession = async (sessionId) => {
+  await requireDb();
+
   await SessionGroup.updateOne(
     { "sessions.sessionId": sessionId },
     { $pull: { sessions: { sessionId } } },
@@ -94,11 +114,17 @@ const revokeSession = async (sessionId) => {
 };
 
 const revokeAllSessions = async (userId) => {
+  await requireDb();
+
   await SessionGroup.updateOne({ userId }, { $set: { sessions: [] } });
 };
 
 const getActiveSessions = async (userId) => {
-  const group = await SessionGroup.findOne({ userId });
+  await requireDb();
+
+  const group = await SessionGroup.findOne({ userId }).maxTimeMS(
+    QUERY_TIMEOUT_MS,
+  );
   if (!group) return [];
   return group.sessions.slice().sort((a, b) => new Date(b.lastSeenAt) - new Date(a.lastSeenAt));
 };
